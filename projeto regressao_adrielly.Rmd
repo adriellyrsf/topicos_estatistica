@@ -1,0 +1,610 @@
+---
+title: ""
+author: ""
+date: ""
+output:
+  bookdown::html_document2:
+    df_print: paged
+    theme: flatly
+    highlight: tango
+    toc: true
+    toc_float: true
+    number_sections: false
+    
+bibliography: "bibliografia.bib"
+csl: abnt.csl
+lang: pt-BR
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  font-size: 12pt;
+  margin: 0;
+}
+
+/* Títulos principais (#) */
+h1 {
+  font-size: 22px;
+}
+
+/* Subtítulos (##) */
+h2 {
+  font-size: 18px;
+}
+
+/* Sub-subtítulos (###) */
+h3 {
+  font-size: 16px;
+}
+
+caption {
+  caption-side: top;
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* ESCONDE o "Table 1" automático */
+caption span {
+  display: none;
+}
+
+table {
+  margin-bottom: 10px !important;
+}
+
+p {
+  margin-bottom: 10px;
+}
+
+table caption {
+  font-weight: bold;
+  color: black;
+  font-size: 16px;
+  caption-side: top;
+  text-align: center;
+}
+
+.title, .author, .date {
+  display: none;
+}
+
+.header {
+  text-align: center;
+  padding: 30px 20px 10px 20px;
+}
+
+.header img {
+  width: 90px;
+  margin-bottom: 10px;
+}
+
+.header h2 {
+  margin: 5px 0;
+  color: black; /* agora padrão */
+}
+
+.header p {
+  margin: 2px 0;
+}
+
+.main-title {
+  text-align: center;
+  font-size: 36px;
+  font-weight: bold;
+  color: #8B0000;
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+
+h1, h2, h3 {
+  color: #8B0000;
+}
+
+.tocify {
+  background-color: #f8f8f8;
+  border-left: 4px solid #8B0000;
+}
+
+pre {
+  border-left: 5px solid #8B0000;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 40px;
+  color: gray;
+}
+</style>
+
+<div class="header">
+
+<img src="logouepb.png">
+
+<p>**UNIVERSIDADE ESTADUAL DA PARAÍBA**</p>
+<p>**CENTRO DE CIÊNCIAS E TECNOLOGIA**</p>
+<p>**DEPARTAMENTO DE ESTATÍSTICA**</p>
+<p>**Discente: Adrielly Rocha de Sousa Ferreira**</p>
+<p>**Docente: Hiago José Andrade de Albuquerque Martins**</p>
+
+</div>
+
+<div class="main-title">
+Análise dos fatores associados ao burnout em trabalhadores inseridos no regime de trabalho remoto
+</div>
+
+---
+
+```{r, include=FALSE}
+#Pacotes
+
+library(kableExtra)
+library(dplyr)
+library(tidyverse)
+```
+
+# Resumo
+
+Este projeto teve como objetivo analisar os fatores associados ao escore de burnout em trabalhadores em regime de trabalho remoto, utilizando dados simulados. Inicialmente, foram realizadas análises descritivas e de correlação, complementadas por gráficos de dispersão, evidenciando, em geral, associações fracas entre as variáveis, com exceção da produtividade, que apresentou forte relação negativa com o burnout. Em seguida, ajustou-se um modelo de regressão linear múltipla, sendo selecionado um modelo reduzido com melhor adequação e elevado poder explicativo (R² ≈ 0,92), no qual a taxa de conclusão de tarefas se destacou como principal fator associado ao desfecho. Embora o modelo tenha apresentado bom desempenho, os resultados devem ser interpretados com cautela, considerando que dados utilizados são simulados e a possível dependência entre observações, não sendo adequados para inferências sobre populações reais.
+
+# 1. Introdução
+
+A Síndrome de Burnout ou Síndrome de Esgotamento Profissional é um distúrbio emocional com sintomas de exaustão extrema, estresse e esgotamento físico causados pelo excesso de trabalho. A síndrome também pode ocorrer quando o profissional planeja ou é submetido a tarefas muito difíceis, com cobranças abusivas e metas impossíveis de serem batidas, o que pode resultar em depressão profunda [@brasil_burnout_2025]. Em 2019, a síndrome foi incluída na Classificação Internacional de Doenças da Organização Mundial da Saúde (OMS) que, se não tratada, pode evoluir para doenças, além da depressão, como hipertensão, problemas gastrointestinais, problemas coronarianos e alcoolismo.
+
+Estudos indicam que a síndrome de burnout tem se manifestado de forma mais expressiva entre trabalhadores mais jovens, especialmente entre indivíduos pertencentes à chamada Geração Z (nascidos entre 1995 e 2010). Evidências sugerem que fatores relacionados ao equilíbrio entre vida profissional e pessoal, bem como às condições de trabalho remoto e híbrido, estão associados a níveis mais elevados de esgotamento ocupacional e a impactos negativos no bem-estar psicológico dessa população [@genz_burnout_2025]. Uma outra pesquisa sobre bem-estar no ambiente de trabalho apontou que a prevalência de sintomas de burnout entre profissionais da Geração Z pode ser superior à observada em outras gerações, reforçando a relevância do tema no contexto atual das transformações do mundo do trabalho [@betterfly_burnout_2022]. 
+
+Além disso, entre líderes pertencentes à geração Z, observa-se que uma parcela significativa relatou agravamento do burnout e prejuízos à saúde mental associados ao trabalho remoto e/ou híbrido. Para o médico especialista em gestão de pessoas, Roberto Aylmer, o trabalho em regime remoto passou a exigir que os trabalhadores conciliem, ao mesmo tempo e no mesmo espaço, demandas profissionais e familiares, o que tem contribuído para o aumento da sobrecarga psicológica [@cnn_burnout_2022].
+
+Em uma pesquisa realizada em 2022, pela empresa suiça *LHH do Grupo Adecco*, 38% dos entrevistados afirmaram ter sofrido da síndrome de Burnout no ano anterior a pesquisa, ademais, 32% dos entrevistados informaram que houve uma piora significativa em sua saúde mental por conta do trabalho à distância. Os resultados também indicaram que para 32% dos participantes houve uma piora significativa na saúde mental associada ao trabalho remoto. O estudo foi conduzido em 2021 e contou com a participação de cerca de 15 mil indivíduos de diferentes países ao redor do mundo
+[@cnn_burnout_2022].  
+
+Neste contexto, considerando que o burnout é influenciado por diversos fatores relacionados às condições de trabalho, a análise de regressão permite avaliar a relação entre o escore de burnout e diferentes variáveis de forma conjunta. Além disso, como os dados apresentam variação entre as observações, a análise de correlação possibilita uma avaliação preliminar das associações entre o escore de burnout e as variáveis explicativas, complementando a análise por regressão.
+
+# 2. Objetivos gerais
+
+Analisar os fatores associados ao escore de burnout em trabalhadores inseridos no regime de trabalho remoto, utilizando modelos de regressão linear.
+
+## 2.1 Objetivos específicos
+
+- Analisar o perfil dos trabalhadores incluídos no estudo, considerando variáveis relacionadas às condições de trabalho remoto.
+- Descrever as variáveis qualitativas e quantitativas do banco de dados por meio de estatísticas descritivas.
+- Avaliar a associação entre o escore de burnout e as variáveis relacionadas à jornada de trabalho, quantidade de reuniões, pausas, horas de sono e produtividade, por meio de análise de correlação.
+- Estimar a associação entre o escore de burnout e as condições de trabalho remoto por meio de modelos de regressão linear múltipla.
+
+# 3. Dados
+
+## 3.1 Fonte dos Dados
+Os dados utilizados neste estudo foram obtidos a partir de um conjunto de dados disponibilizado na plataforma Kaggle, intitulado *Work From Home Employee Burnout Dataset* [@shinde2023], que reúne informações relacionadas às condições de trabalho remoto e ao nível de burnout entre trabalhadores. Importante destacar que esses dados são simuladosá que quero feriaaas, um 8 já ta otimo, de acesso público e sem identificação individual. 
+
+
+## 3.2 Variáveis do Estudo
+
+As variáveis contidas no banco de dados, e que serão analisadas, estão contidos na Tabela 1.
+
+```{r tab-cov, echo=FALSE}
+tabela <- data.frame(
+  Variável = c(
+    "Tipo de dia",
+    "Horas de Trabalho",
+    "Horas de tempo de tela",
+    "Quantidade de reuniões",
+    "Pausas tomadas",
+    "Trabalho após o horário",
+    "Horas dormidas",
+    "Taxa de conclusão de tarefas",
+    "Escore de Burnout",
+    "Risco de Burnout"
+  ),
+  Descrição = c(
+    "Dia da semana ou fim de semana",
+    "Número total de horas trabalhadas em um dia",
+    "Tempo total diário de exposição a telas (trabalho + reuniões)",
+    "Quantidade diária de reuniões",
+    "Número de pausas durante o trabalho",
+    "Indica se houve trabalho fora do horário (0 = não; 1 = sim)",
+    "Total de horas de sono na noite anterior",
+    "Percentual de tarefas concluídas no dia",
+    "Pontuação contínua que indica intensidade do burnout",
+    "Categoria: baixo, médio ou alto"
+  ),
+  Tipo = c(
+    "Qualitativa","Quantitativa","Quantitativa","Quantitativa",
+    "Quantitativa","Qualitativa","Quantitativa",
+    "Quantitativa","Quantitativa","Qualitativa"
+  )
+)
+
+knitr::kable(
+  tabela,
+  caption = "Tabela 1: Descrição e classificação das variáveis do estudo"
+)
+```
+
+# 4. Metodologia
+
+Inicialmente, foi realizada uma análise descritiva das variáveis em estudo, por meio do cálculo de frequências absolutas e relativas para as variáveis qualitativas, bem como medidas de tendência central e dispersão para as variáveis quantitativas, com o objetivo de caracterizar a amostra.
+
+Em seguida, foi conduzida uma análise de correlação entre o escore contínuo de burnout (variável dependente) e as variáveis independentes relacionadas às condições de trabalho remoto, visando identificar possíveis associações entre essas variáveis.
+
+Para a análise dos fatores associados ao escore de burnout, será utilizada a regressão linear múltipla, que é uma técnica estatística utilizada para modelar a relação entre uma variável dependente e duas ou mais variáveis independentes. Nesse tipo de modelo, busca-se explicar o comportamento da variável resposta a partir de um conjunto de variáveis explicativas, permitindo avaliar a influência de cada uma delas, mantendo as demais constantes. O modelo de regressão linear múltipla é representado por:
+
+$$
+Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \cdots + \beta_k X_{ki} + \varepsilon_i
+$$
+
+Em que $Y_i$ representa a variável resposta ou dependente, $X_{1i}, X_{2i}, \ldots, X_{ki}$ correspondem às variáveis independentes, $\beta_0$ é o intercepto, $\beta_1, \beta_2, \ldots, \beta_k$ são os coeficientes associados a cada variável explicativa e $\varepsilon_i$ representa de erro aleatório.
+
+Os coeficientes do modelo são estimados, em geral, pelo método dos mínimos quadrados, que consiste em minimizar a soma dos quadrados dos resíduos, ou seja, as diferenças entre os valores observados e os valores estimados pelo modelo [@gori].
+
+Posteriormente, foram ajustados modelos de regressão linear múltipla para avaliar a associação entre o escore de burnout e as variáveis explicativas relacionadas à jornada de trabalho, tempo de exposição a telas, quantidade de reuniões, pausas realizadas, horas de sono e taxa de conclusão de tarefas.
+
+Para que os resultados do modelo sejam válidos, os pressupostos do modelo de regressão linear, incluindo normalidade dos resíduos, homocedasticidade e independência, serão  considerados para avaliação da adequação do modelo. Caso tais pressupostos não fossem atendidos, seriam consideradas abordagens alternativas apropriadas. O nível de significância adotado em todas as análises foi de 5%.
+
+# 5. Análise Descritiva dos dados
+Nesta seção, será apresentada a análise descritiva dos dados, com o objetivo de caracterizar as principais variáveis do estudo. Inicialmente, serão analisadas as variáveis qualitativas por meio de frequências absolutas e relativas. Em seguida, são descritas as variáveis quantitativas, utilizando medidas de tendência central e dispersão, permitindo uma visão geral da distribuição dos dados.
+
+## 5.1 Pacotes Utilizados
+
+```{r Pacotes, class.source="fold-show", message=FALSE, warning=FALSE}                         
+
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(kableExtra)
+
+```
+
+## 5.2 Importação e Visualização dos Dados
+
+```{r Dados, message=FALSE, warning=FALSE}
+dados <- read_delim("work_from_home_burnout_dataset.csv",
+  delim = ";",
+  locale = locale(encoding = "latin1")
+)
+
+head(dados)
+
+```
+
+## 5.3 Tabela de Frêquencia das Variavéis Qualitativas
+
+Nesta seção, são apresentadas as distribuições de frequência das variáveis qualitativas incluídas no estudo, com o objetivo de caracterizar a amostra quanto a aspectos relacionados ao tipo de dia, ocorrência de trabalho após o horário e classificação do risco de burnout.
+
+```{r, echo=FALSE}
+freq_tipo <- table(dados$tipo_de_dia)
+
+tabela_tipo <- data.frame(
+  Categoria = names(freq_tipo),
+  Frequencia = as.numeric(freq_tipo),
+  Percentual = round(as.numeric(prop.table(freq_tipo)) * 100, 2)
+)
+
+knitr::kable(
+  tabela_tipo,
+  col.names = c("Categoria", "Frequência", "Percentual (%)"),
+  caption = "Distribuição do tipo de dia",
+  align = "ccc"
+)
+```
+
+```{r, echo=FALSE}
+tabela_trabalho <- as.data.frame(table(dados$trabalho_apos_o_horario))
+
+tabela_trabalho$Percentual <- prop.table(tabela_trabalho$Freq) * 100
+
+colnames(tabela_trabalho) <- c("Categoria", "Frequência", "Percentual (%)")
+
+knitr::kable(
+  tabela_trabalho,
+  caption = "Frequência de trabalho após o horário",
+  align = "ccc"
+)
+
+```
+
+
+```{r, echo=FALSE}
+freq_burnout <- table(dados$risco_de_burnout)
+
+tabela_burnout <- data.frame(
+  Categoria = names(freq_burnout),
+  Frequencia = as.numeric(freq_burnout),
+  Percentual = round(as.numeric(prop.table(freq_burnout)) * 100, 2)
+)
+
+knitr::kable(
+  tabela_burnout,
+  col.names = c("Categoria", "Frequência", "Percentual (%)"),
+  caption = "Distribuição do risco de burnout",
+  align = "ccc"
+)
+```
+
+Observa-se que a distribuição do tipo de dia apresentou proporções bastante equilibradas entre dias da semana (48,67%) e fins de semana (51,33%), indicando que o conjunto de dados contempla de forma semelhante ambos os contextos de trabalho.
+
+Em relação ao trabalho após o horário, verifica-se que a maioria dos registros corresponde a indivíduos que não realizam atividades fora do expediente (64,11%), enquanto 35,89% relataram trabalhar além do horário regular, sugerindo que uma parcela considerável da amostra está exposta a jornadas de trabalho estendidas.
+
+No que diz respeito ao risco de burnout, observa-se predominância da categoria de baixo risco (84,83%), seguida por risco médio (14,06%) e uma pequena proporção de indivíduos classificados com alto risco (1,11%). Esse resultado indica que, embora a maioria da amostra apresente baixo risco de burnout, existe uma parcela relevante em níveis moderados, o que justifica a investigação dos fatores associados ao aumento desse risco.
+
+## 5.4 Estatísticas descritivas das variáveis quantitativas
+
+Nesta seção, são apresentadas as estatísticas descritivas das variáveis quantitativas do estudo, incluindo medidas de tendência central e dispersão, com o objetivo de caracterizar o comportamento das variáveis relacionadas às condições de trabalho remoto e ao escore de burnout.
+
+```{r, echo=FALSE}
+resumo_quant <- data.frame(
+  Variavel = c("Horas de trabalho", "Tempo de tela", "Reuniões",
+               "Pausas", "Horas dormidas", "Produtividade", "Burnout"),
+  
+  Min = c(
+    min(dados$horas_de_trabalho, na.rm = TRUE),
+    min(dados$horas_de_tempo_de_tela, na.rm = TRUE),
+    min(dados$quantidade_de_reunioes, na.rm = TRUE),
+    min(dados$pausas_tomadas, na.rm = TRUE),
+    min(dados$horas_dormidas, na.rm = TRUE),
+    min(dados$taxa_de_conclusao_de_tarefas, na.rm = TRUE),
+    min(dados$burnout_escore, na.rm = TRUE)
+  ),
+  
+  Q1 = c(
+    quantile(dados$horas_de_trabalho, 0.25, na.rm = TRUE),
+    quantile(dados$horas_de_tempo_de_tela, 0.25, na.rm = TRUE),
+    quantile(dados$quantidade_de_reunioes, 0.25, na.rm = TRUE),
+    quantile(dados$pausas_tomadas, 0.25, na.rm = TRUE),
+    quantile(dados$horas_dormidas, 0.25, na.rm = TRUE),
+    quantile(dados$taxa_de_conclusao_de_tarefas, 0.25, na.rm = TRUE),
+    quantile(dados$burnout_escore, 0.25, na.rm = TRUE)
+  ),
+  
+  Mediana = c(
+    median(dados$horas_de_trabalho, na.rm = TRUE),
+    median(dados$horas_de_tempo_de_tela, na.rm = TRUE),
+    median(dados$quantidade_de_reunioes, na.rm = TRUE),
+    median(dados$pausas_tomadas, na.rm = TRUE),
+    median(dados$horas_dormidas, na.rm = TRUE),
+    median(dados$taxa_de_conclusao_de_tarefas, na.rm = TRUE),
+    median(dados$burnout_escore, na.rm = TRUE)
+  ),
+  
+  Media = c(
+    mean(dados$horas_de_trabalho, na.rm = TRUE),
+    mean(dados$horas_de_tempo_de_tela, na.rm = TRUE),
+    mean(dados$quantidade_de_reunioes, na.rm = TRUE),
+    mean(dados$pausas_tomadas, na.rm = TRUE),
+    mean(dados$horas_dormidas, na.rm = TRUE),
+    mean(dados$taxa_de_conclusao_de_tarefas, na.rm = TRUE),
+    mean(dados$burnout_escore, na.rm = TRUE)
+  ),
+  
+  Q3 = c(
+    quantile(dados$horas_de_trabalho, 0.75, na.rm = TRUE),
+    quantile(dados$horas_de_tempo_de_tela, 0.75, na.rm = TRUE),
+    quantile(dados$quantidade_de_reunioes, 0.75, na.rm = TRUE),
+    quantile(dados$pausas_tomadas, 0.75, na.rm = TRUE),
+    quantile(dados$horas_dormidas, 0.75, na.rm = TRUE),
+    quantile(dados$taxa_de_conclusao_de_tarefas, 0.75, na.rm = TRUE),
+    quantile(dados$burnout_escore, 0.75, na.rm = TRUE)
+  ),
+  
+  Max = c(
+    max(dados$horas_de_trabalho, na.rm = TRUE),
+    max(dados$horas_de_tempo_de_tela, na.rm = TRUE),
+    max(dados$quantidade_de_reunioes, na.rm = TRUE),
+    max(dados$pausas_tomadas, na.rm = TRUE),
+    max(dados$horas_dormidas, na.rm = TRUE),
+    max(dados$taxa_de_conclusao_de_tarefas, na.rm = TRUE),
+    max(dados$burnout_escore, na.rm = TRUE)
+  ),
+  
+  DP = c(
+    sd(dados$horas_de_trabalho, na.rm = TRUE),
+    sd(dados$horas_de_tempo_de_tela, na.rm = TRUE),
+    sd(dados$quantidade_de_reunioes, na.rm = TRUE),
+    sd(dados$pausas_tomadas, na.rm = TRUE),
+    sd(dados$horas_dormidas, na.rm = TRUE),
+    sd(dados$taxa_de_conclusao_de_tarefas, na.rm = TRUE),
+    sd(dados$burnout_escore, na.rm = TRUE)
+  )
+)
+
+knitr::kable(
+  resumo_quant,
+  col.names = c("Variável", "Mín", "1º Quartil", "Mediana", "Média", "3º Quartil", "Máx", "DP"),
+  caption = "Estatísticas descritivas das variáveis quantitativas",
+  align = "c"
+)
+```
+Observa-se que a média de horas de trabalho diário foi de aproximadamente 6,52 horas, com variação entre 3,00 e 12,17 horas, indicando heterogeneidade na jornada de trabalho dos indivíduos. O tempo médio de exposição a telas foi de 9,27 horas, sugerindo elevada utilização de dispositivos eletrônicos durante o trabalho remoto. Em relação à quantidade de reuniões, a média foi de aproximadamente 1,94 por dia, com valores variando de 0 a 10, enquanto o número médio de pausas foi de cerca de 3 por dia, indicando certa regularidade na realização de intervalos ao longo da jornada. As horas de sono apresentaram média de aproximadamente 7 horas, com variação entre 4,50 e 10,80 horas, refletindo diferenças nos padrões de descanso entre os indivíduos. A variável de produtividade apresentou média de 72,31, com ampla variação (40,00 a 107,20), sugerindo diferenças relevantes no desempenho
+
+# 6. Análise exploratória dos dados
+
+Nesta seção, serão analisadas as relações entre o escore de burnout e as variáveis explicativas relacionadas às condições de trabalho remoto. Inicialmente, será realizada uma análise de correlação, com o objetivo de identificar a intensidade e a direção das associações lineares entre as variáveis. Em seguida, são apresentados gráficos de dispersão, que auxiliam na visualização dessas relações, permitindo uma compreensão mais clara do comportamento dos dados.
+
+## 6.1 Correlação linear entre variáveis
+
+Nesta seção, realiza-se a análise de correlação linear entre o escore de burnout e as variáveis explicativas relacionadas às condições de trabalho remoto, com o objetivo de identificar a intensidade e a direção das associações entre essas variáveis.
+
+```{r, echo=FALSE}
+correlacoes <- data.frame(
+  Variavel = c("Horas de trabalho", "Tempo de tela", "Reuniões",
+               "Pausas", "Horas dormidas", "Produtividade"),
+  
+  Correlacao = c(
+    cor(dados$burnout_escore, dados$horas_de_trabalho, use = "complete.obs"),
+    cor(dados$burnout_escore, dados$horas_de_tempo_de_tela, use = "complete.obs"),
+    cor(dados$burnout_escore, dados$quantidade_de_reunioes, use = "complete.obs"),
+    cor(dados$burnout_escore, dados$pausas_tomadas, use = "complete.obs"),
+    cor(dados$burnout_escore, dados$horas_dormidas, use = "complete.obs"),
+    cor(dados$burnout_escore, dados$taxa_de_conclusao_de_tarefas, use = "complete.obs")
+  )
+)
+
+knitr::kable(
+  correlacoes,
+  col.names = c("Variável", "Correlação com Burnout"),
+  caption = "Correlação entre variáveis explicativas e o escore de burnout",
+  align = "cc"
+)
+```
+Observa-se que as variáveis horas de trabalho, tempo de tela e quantidade de reuniões apresentaram correlação positiva com o escore de burnout, embora de baixa magnitude, indicando associações lineares fracas com o desfecho. A variável pausas praticamente não apresentou correlação com o burnout, sugerindo ausência de relação linear relevante. Da mesma forma, as horas de sono apresentaram correlação negativa muito próxima de zero, indicando associação linear praticamente inexistente.
+
+Por outro lado, a variável produtividade apresentou forte correlação negativa com o escore de burnout (-0,96), indicando que maiores níveis de produtividade estão associados a menores níveis de burnout. Esse resultado sugere uma relação inversa intensa entre essas variáveis, destacando a produtividade como um fator potencialmente relevante na explicação do burnout. De modo geral, observa-se que a maioria das variáveis apresenta correlação fraca com o escore de burnout, com exceção da produtividade, que se destaca por sua forte associação linear.
+
+## 6.2 Análise gráfica das principais correlações
+
+Aqui serão apresentados gráficos de dispersão com o objetivo de visualizar as relações entre o escore de burnout e algumas as variáveis explicativas importantes. Esses gráficos permitem uma análise visual das associações, auxiliando na identificação de padrões, tendências e possíveis comportamentos dos dados que não são observados apenas por medidas numéricas.
+
+```{r, echo=FALSE}
+plot(
+  dados$horas_de_trabalho,
+  dados$burnout_escore,
+  xlab = "Horas de trabalho",
+  ylab = "Escore de burnout",
+  main = "Relação entre horas de trabalho e burnout"
+)
+
+abline(lm(burnout_escore ~ horas_de_trabalho, data = dados), col = "red")
+```
+
+```{r, echo=FALSE}
+plot(
+  dados$horas_dormidas,
+  dados$burnout_escore,
+  xlab = "Horas dormidas",
+  ylab = "Escore de burnout",
+  main = "Relação entre horas de sono e burnout"
+)
+
+abline(lm(burnout_escore ~ horas_dormidas, data = dados), col = "red")
+```
+```{r, echo=FALSE}
+plot(
+  dados$taxa_de_conclusao_de_tarefas,
+  dados$burnout_escore,
+  xlab = "Produtividade",
+  ylab = "Escore de burnout",
+  main = "Relação entre produtividade e burnout"
+)
+
+abline(lm(burnout_escore ~ taxa_de_conclusao_de_tarefas, data = dados), col = "red")
+```
+
+As demais variáveis, confoirme apresentado na subseção anterior, apresentaram padrões semelhantes e associações fracas, não sendo apresentadas graficamente. Observa-se, no gráfico entre horas de trabalho e escore de burnout, uma leve tendência crescente, embora com elevada dispersão dos pontos, indicando uma relação positiva fraca entre as variáveis. Esse padrão está em concordância com o baixo coeficiente de correlação previamente observado. No gráfico que relaciona horas de sono e burnout, não se identifica um padrão claro de associação, com os pontos distribuídos de forma bastante dispersa ao longo do eixo, sugerindo ausência de relação linear significativa entre essas variáveis. Por outro lado, o gráfico entre produtividade e escore de burnout evidencia uma forte relação linear negativa, com os pontos concentrados ao longo de uma reta decrescente bem definida. Esse comportamento confirma a elevada correlação negativa observada anteriormente, indicando que maiores níveis de produtividade estão associados a menores níveis de burnout.
+
+De forma geral, os gráficos reforçam os resultados obtidos na análise de correlação, evidenciando relações fracas para a maioria das variáveis e uma associação linear forte apenas para a produtividade.
+
+# 7. Análise de Regressão Linear 
+
+## 7.1 Modelo de regressão linear múltipla
+
+### 7.1.1 Modelo completo
+
+```{r}
+
+#Antes de tudo, é necessario converter a variavél 'tipo_de_dia' pois ela é qualitativa.
+
+dados$tipo_de_dia <- as.factor(dados$tipo_de_dia)
+
+modelo <- lm(
+  burnout_escore ~ dados$tipo_de_dia +
+                   horas_de_trabalho +
+                   horas_de_tempo_de_tela +
+                   quantidade_de_reunioes +
+                   pausas_tomadas +
+                   horas_dormidas +
+                   taxa_de_conclusao_de_tarefas +
+                   trabalho_apos_o_horario,
+  data = dados
+)
+
+summary(modelo)
+
+```
+### 7.1.2 Modelo reduzido
+
+```{r}
+
+modelo2 <- lm(
+  burnout_escore ~ taxa_de_conclusao_de_tarefas +
+                   trabalho_apos_o_horario,
+  data = dados
+)
+
+summary(modelo2)
+```
+
+
+Foram ajustados dois modelos de regressão linear múltipla com o objetivo de avaliar a associação entre o escore de burnout e variáveis relacionadas às condições de trabalho remoto. O modelo completo apresentou bom ajuste aos dados, com (R²) igual a 0,922, indicando uma capacidade explicativa alta.
+
+No modelo completo, a variável tipo de dia (fim de semana) não apresentou associação estatisticamente significativa com o escore de burnout (p > 0,05). De forma semelhante, as variáveis horas de trabalho, tempo de tela, quantidade de reuniões, pausas e horas de sono também não foram significativas. Por outro lado, a variável taxa de conclusão de tarefas apresentou associação negativa e estatisticamente significativa com o burnout (p < 0,001), assim como a variável trabalho após o horário (p = 0,027).
+
+Em seguida, foi ajustado um modelo reduzido contendo apenas as variáveis significativas do modelo completo. Esse modelo também apresentou bom ajuste, com (R²) igual a 0,922, muito próximo ao modelo completo. As variáveis taxa de conclusão de tarefas e trabalho após o horário permaneceram estatisticamente significativas, mantendo o mesmo padrão observado anteriormente.
+
+Assim, observa-se que a taxa de conclusão de tarefas é o principal fator associado ao burnout, enquanto o trabalho após o horário também apresenta efeito significativo. A retirada das demais variáveis não alterou de forma relevante a capacidade explicativa do modelo.
+
+## 7.2 Verificando pressupostos
+
+```{r, echo=FALSE}
+par(mfrow = c(2,2))
+plot(modelo2)
+```
+
+A avaliação dos pressupostos do modelo de regressão linear múltipla foi realizada por meio de gráficos de diagnóstico. O gráfico de resíduos versus valores ajustados indicou que a suposição de linearidade foi razoavelmente atendida, embora ainda seja possível observar uma leve curvatura nos resíduos.O gráfico Q-Q evidenciou que os resíduos seguem aproximadamente uma distribuição normal, porém com desvios mais visíveis nas extremidades, sugerindo a presença de alguns valores extremos. Em relação à homocedasticidade, o gráfico Scale-Location indicou uma leve variação na dispersão dos resíduos, apontando para uma possível heterocedasticidade, ainda que não muito acentuada.
+
+Por fim, o gráfico de resíduos versus leverage indicou a presença de algumas observações potencialmente influentes, mas sem evidências de impacto significativo sobre o ajuste do modelo. De modo geral, os pressupostos do modelo foram considerados razoavelmente atendidos, sendo o modelo adequado para fins de análise e interpretação.Além disso, o modelo completo também foi análisado, porém o modelo reduzido foi escolhido por apresentar ajuste semelhante e um  comportamento melhor dos resíduos, dessa forma, o segundo modelo foi considerado mais adequado e será utilizado para a interpretação dos resultados.
+
+## 7.2 Realizando previsões com o modelo
+
+```{r, echo=FALSE}
+# Previsões
+dados$burnout_previsto <- predict(modelo2)
+
+# Criar tabela comparativa
+tabela_prev <- dados[, c("burnout_escore", "burnout_previsto")]
+
+# Mostrar só as primeiras linhas
+knitr::kable(
+  head(tabela_prev, 10),
+  col.names = c("Escore de Burnout observado", "Escore Burnout previsto"),
+  caption = "Comparação entre valores observados e previstos",
+  align = "cc"
+)
+```
+```{r, echo=FALSE}
+plot(dados$burnout_escore, dados$burnout_previsto,
+     xlab = "Valor observado",
+     ylab = "Valor previsto",
+     main = "Valores observados vs previstos")
+
+abline(0, 1, col = "red")
+```
+
+o Gráfico apresenta a comparação entre os valores observados e os valores previstos pelo modelo ajustado. A partir do modelo ajustado, foram obtidos valores previstos para o escore de burnout e comparados com os valores observados. De modo geral, observa-se que os valores previstos estão relativamente próximos dos valores reais, indicando que o modelo apresenta boa capacidade preditiva. Em alguns casos, são observadas diferenças entre os valores observados e previstos, o que é esperado, uma vez que o modelo não capta toda a variabilidade dos dados. Ainda assim, o padrão geral é bem representado, com previsões acompanhando a tendência dos valores observados. Esses resultados reforçam que o modelo reduzido apresenta bom desempenho na estimativa do escore de burnout, sendo adequado para fins de previsão dentro do contexto analisado.
+
+# 8. Conclusão
+
+De forma geral, os resultados indicaram que a taxa de conclusão de tarefas foi o principal fator associado ao escore de burnout. Especificamente, para cada aumento de uma unidade nessa taxa, observa-se uma redução média de aproximadamente 1,53 pontos no escore de burnout, mantendo as demais variáveis constantes. Esse resultado está em concordância com a análise de correlação e com a análise gráfica, que evidenciaram uma forte associação linear negativa entre produtividade e burnout.
+
+A variável trabalho após o horário também apresentou efeito estatisticamente significativo, indicando que indivíduos que realizam atividades fora do expediente apresentam, em média, cerca de 0,71 pontos a menos no escore de burnout, quando comparados àqueles que não trabalham após o horário, mantendo as demais variáveis constantes. Embora esse resultado seja estatisticamente significativo, ele contraria parcialmente a expectativa teórica, devendo ser interpretado com cautela.
+
+O modelo reduzido apresentou bom desempenho, com elevada capacidade explicativa (R² ≈ 0,92) e previsões próximas aos valores observados. Além disso, a análise dos resíduos indicou melhor adequação aos pressupostos do modelo, justificando a sua escolha em relação ao modelo completo.
+
+Os objetivos propostos foram atingidos. Inicialmente, a análise descritiva permitiu caracterizar o perfil dos trabalhadores e compreender a distribuição das variáveis. Em seguida, a análise de correlação e os gráficos de dispersão possibilitaram uma avaliação preliminar das relações entre o escore de burnout e as variáveis explicativas. Por fim, por meio dos modelos de regressão linear, foi possível identificar os principais fatores associados ao burnout.
+
+No entanto, algumas limitações devem ser consideradas. O conjunto de dados apresenta estrutura longitudinal, com observações repetidas para os mesmos indivíduos ao longo do tempo, o que pode gerar dependência entre as observações, não sendo explicitamente tratado no modelo de regressão linear múltipla. Além disso, observou-se forte correlação entre a variável produtividade e o escore de burnout, o que pode influenciar de forma dominante os resultados do modelo.
+
+Por fim, destaca-se que os dados utilizados são simulados, o que limita a generalização dos resultados. Embora, do ponto de vista teórico, espere-se que o burnout esteja associado a fatores como sobrecarga de trabalho e alta demanda, tais relações não foram evidenciadas de forma significativa no modelo ajustado. Dessa forma, os resultados devem ser interpretados com cautela, não sendo adequados para inferências sobre populações reais, sendo válidos apenas no contexto do presente estudo.
+
+# 9. Referências Bibliográficas
+
+<div id="refs"></div>
+
+
+<div class="footer">
+Campina Grande - PB<br>
+2026
+</div>
